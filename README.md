@@ -30,7 +30,7 @@ A REST API that processes merchant activity logs and exposes business insights f
 
 #### 1. Clone the repo
 ```bash
-git clone https://github.com/Tijani891/Tijani_Ahmed_Dream_Dev_Solution
+git clone https://github.com/Tijani891/Moniepoint_Analytics_API
 cd moniepoint-analytics
 ```
 
