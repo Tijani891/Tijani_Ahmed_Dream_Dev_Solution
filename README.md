@@ -66,20 +66,119 @@ Place all `activities_YYYYMMDD.csv` files into the `data/` folder.
 python scripts/ingest.py
 ```
 
+Expected output:
+```
+Creating table...
+Creating indexes...
+Table and indexes ready.
+Found 31 CSV file(s). Starting import...
+  Loading activities_20240101.csv... 27,328 rows loaded, 6 skipped.
+  ...
+✅ Done! Total rows loaded: 849,474 | Total skipped: 201
+```
+
 ### 8. Start the API
 ```bash
 uvicorn src.app.main:app --host 0.0.0.0 --port 8080
 ```
 
----
-
-## Test the endpoints
-```bash
-curl http://localhost:8080/analytics/top-merchant
-curl http://localhost:8080/analytics/monthly-active-merchants
-curl http://localhost:8080/analytics/product-adoption
-curl http://localhost:8080/analytics/kyc-funnel
-curl http://localhost:8080/analytics/failure-rates
+Expected output:
+```
+INFO:     Started server process [32723]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
 ```
 
-Or visit **http://localhost:8080/docs** for interactive API docs.
+---
+
+## API Endpoints & Sample Responses
+
+### GET /analytics/top-merchant
+Returns the merchant with the highest total successful transaction amount across all products.
+```bash
+curl http://localhost:8080/analytics/top-merchant
+```
+```json
+{"merchant_id": "MRC-009405", "total_volume": 181479333.57}
+```
+
+---
+
+### GET /analytics/monthly-active-merchants
+Returns the count of unique merchants with at least one successful event per month.
+```bash
+curl http://localhost:8080/analytics/monthly-active-merchants
+```
+```json
+{"2024-01": 9848}
+```
+
+---
+
+### GET /analytics/product-adoption
+Returns unique merchant count per product, sorted highest first.
+```bash
+curl http://localhost:8080/analytics/product-adoption
+```
+```json
+{
+  "BILLS": 4379,
+  "SAVINGS": 4368,
+  "POS": 4349,
+  "AIRTIME": 4277,
+  "MONIEBOOK": 4267,
+  "CARD_PAYMENT": 4233,
+  "KYC": 4167
+}
+```
+
+---
+
+### GET /analytics/kyc-funnel
+Returns the KYC conversion funnel (successful events only).
+```bash
+curl http://localhost:8080/analytics/kyc-funnel
+```
+```json
+{
+  "documents_submitted": 3760,
+  "verifications_completed": 3389,
+  "tier_upgrades": 2496
+}
+```
+
+---
+
+### GET /analytics/failure-rates
+Returns failure rate per product, sorted descending. PENDING excluded.
+```bash
+curl http://localhost:8080/analytics/failure-rates
+```
+```json
+[
+  {"product": "BILLS", "failure_rate": 5.3},
+  {"product": "CARD_PAYMENT", "failure_rate": 5.2},
+  {"product": "AIRTIME", "failure_rate": 5.2},
+  {"product": "MONIEBOOK", "failure_rate": 5.2},
+  {"product": "POS", "failure_rate": 5.2},
+  {"product": "SAVINGS", "failure_rate": 5.2},
+  {"product": "KYC", "failure_rate": 5.2}
+]
+```
+
+---
+
+## Screenshots
+
+### API Running in Terminal
+![API Terminal](pictures/api-terminal.png)
+
+### API Response in Browser
+![API Browser](pictures/api-browser.png)
+
+---
+
+## Interactive Docs
+
+Visit **http://localhost:8080/docs** for the full interactive API documentation powered by Swagger UI.

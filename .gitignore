@@ -1,1 +1,15 @@
 .env
+venv/
+__pycache__/
+*.pyc
+data/*.csv
+!data/activities_20240101.csv
+!data/activities_20240102.csv
+!data/activities_20240103.csv
+!data/activities_20240104.csv
+!data/activities_20240105.csv
+!data/activities_20240106.csv
+!data/activities_20240107.csv
+!data/activities_20240108.csv
+!data/activities_20240109.csv
+!data/activities_20240110.csv
