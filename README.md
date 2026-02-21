@@ -2,7 +2,7 @@
 
 **Author:** Tijani Ahmed
 
-A REST API that processes merchant activity logs and exposes business insights.
+A REST API that processes merchant activity logs and exposes business insights for Moniepoint's Growth & Intelligence team.
 
 ---
 
@@ -13,42 +13,46 @@ A REST API that processes merchant activity logs and exposes business insights.
 - "Product adoption" counts any merchant with at least one event per product (any status).
 - Failure rate excludes PENDING: `FAILED / (SUCCESS + FAILED) * 100`.
 - All 5 endpoint responses are cached in memory after first request (dataset is static).
+- Amount fields with non-numeric values (e.g. `INVALID`) are replaced with `0`.
 
 ---
 
 ## Prerequisites
 
 - Python 3.11+
-- PostgreSQL (running locally)
+- PostgreSQL
 
 ---
 
 ## Setup & Run
 
-### 1. Clone the repo
+### Option A — Running Locally
+
+#### 1. Clone the repo
 ```bash
 git clone <your-repo-url>
 cd moniepoint-analytics
 ```
 
-### 2. Create and activate virtual environment
+#### 2. Create and activate virtual environment
 ```bash
 python -m venv venv
 source venv/bin/activate        # Mac/Linux
 venv\Scripts\activate           # Windows
 ```
 
-### 3. Install dependencies
+#### 3. Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Create PostgreSQL database
+#### 4. Create PostgreSQL database
+Open your PostgreSQL shell and run:
 ```sql
 CREATE DATABASE moniepoint;
 ```
 
-### 5. Configure environment
+#### 5. Configure environment
 Edit `.env` with your database credentials:
 ```
 DB_HOST=localhost
@@ -58,10 +62,17 @@ DB_USER=postgres
 DB_PASSWORD=your_password
 ```
 
-### 6. Add CSV files
-Place all `activities_YYYYMMDD.csv` files into the `data/` folder.
+#### 6. Add CSV files
+Place all `activities_YYYYMMDD.csv` files into the `data/` folder:
+```
+moniepoint-analytics/
+└── data/
+    ├── activities_20240101.csv
+    ├── activities_20240102.csv
+    └── ...
+```
 
-### 7. Import data (run once)
+#### 7. Import data (run once)
 ```bash
 python scripts/ingest.py
 ```
@@ -77,17 +88,57 @@ Found 31 CSV file(s). Starting import...
 ✅ Done! Total rows loaded: 849,474 | Total skipped: 201
 ```
 
-### 8. Start the API
+#### 8. Start the API
 ```bash
 uvicorn src.app.main:app --host 0.0.0.0 --port 8080
 ```
 
-Expected output:
+---
+
+### Option B — Running on GitHub Codespaces
+
+#### 1. Open the repo in Codespaces
+Click **Code → Codespaces → Create codespace on main** on the GitHub repo page.
+
+#### 2. Install and start PostgreSQL
+```bash
+sudo apt-get update
+sudo apt-get install -y postgresql
+sudo service postgresql start
 ```
-INFO:     Started server process [32723]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
+
+#### 3. Set PostgreSQL password and create database
+```bash
+sudo su - postgres -c "psql -c \"ALTER USER postgres PASSWORD 'postgres';\""
+sudo su - postgres -c "psql -c \"CREATE DATABASE moniepoint;\""
+```
+
+#### 4. Configure environment
+Edit `.env`:
+```
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=moniepoint
+DB_USER=postgres
+DB_PASSWORD=postgres
+```
+
+#### 5. Install dependencies
+```bash
+pip install -r requirements.txt
+```
+
+#### 6. Add CSV files
+Place all `activities_YYYYMMDD.csv` files into the `data/` folder.
+
+#### 7. Import data (run once)
+```bash
+python scripts/ingest.py
+```
+
+#### 8. Start the API
+```bash
+uvicorn src.app.main:app --host 0.0.0.0 --port 8080
 ```
 
 ---
@@ -182,3 +233,28 @@ curl http://localhost:8080/analytics/failure-rates
 ## Interactive Docs
 
 Visit **http://localhost:8080/docs** for the full interactive API documentation powered by Swagger UI.
+
+---
+
+## Project Structure
+```
+moniepoint-analytics/
+├── src/
+│   └── app/
+│       ├── __init__.py
+│       ├── database.py        # PostgreSQL connection pool
+│       ├── main.py            # FastAPI app entry point
+│       ├── routers/
+│       │   ├── __init__.py
+│       │   └── analytics.py   # 5 API endpoints
+│       └── services/
+│           ├── __init__.py
+│           └── analytics.py   # SQL queries + in-memory cache
+├── scripts/
+│   └── ingest.py              # CSV → PostgreSQL bulk loader
+├── data/                      # Place CSV files here
+├── pictures/                  # Screenshots
+├── requirements.txt
+├── .env                       # DB credentials (not committed)
+└── README.md
+```
